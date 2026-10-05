@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Lorna! 💕</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Fredoka:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,400&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pink: {
+                            50: '#fff0f5',
+                            100: '#ffe4e1',
+                            200: '#ffc0cb',
+                            300: '#ffb6c1',
+                            400: '#ff69b4',
+                            500: '#ff1493',
+                            600: '#db7093',
+                            700: '#c71585',
+                            800: '#99004d',
+                            900: '#4a0026',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                        cute: ['Fredoka', 'cursive'],
+                        serif: ['Playfair Display', 'serif'],
+                        handwritten: ['Caveat', 'cursive']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #fff0f5;
+            font-family: 'Quicksand', sans-serif;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        #heartCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .pink-glass {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 2px solid rgba(255, 182, 193, 0.8);
+            box-shadow: 0 20px 40px rgba(255, 105, 180, 0.22);
+        }
+
+        .polaroid-frame {
+            background: #ffffff;
+            padding: 14px 14px 34px 14px;
+            box-shadow: 0 12px 30px -5px rgba(255, 105, 180, 0.28);
+            border: 1px solid #ffe4e1;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .polaroid-frame:hover {
+            transform: scale(1.02) rotate(0deg) !important;
+            box-shadow: 0 22px 40px rgba(255, 20, 147, 0.35);
+            z-index: 20;
+        }
+
+        .washi-tape {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-1.5deg);
+            width: 95px;
+            height: 24px;
+            background-color: rgba(255, 182, 193, 0.85);
+            border-left: 2px dashed rgba(255, 255, 255, 0.9);
+            border-right: 2px dashed rgba(255, 255, 255, 0.9);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+            z-index: 25;
+        }
+
+        .eq-bar {
+            width: 3px;
+            height: 16px;
+            background-color: #ff1493;
+            border-radius: 2px;
+            animation: eq 0.8s infinite ease-in-out alternate;
+        }
+        .eq-bar:nth-child(1) { animation-delay: 0.1s; }
+        .eq-bar:nth-child(2) { animation-delay: 0.3s; }
+        .eq-bar:nth-child(3) { animation-delay: 0.2s; }
+        .eq-bar:nth-child(4) { animation-delay: 0.4s; }
+
+        @keyframes eq {
+            0% { height: 4px; }
+            100% { height: 22px; }
+        }
+
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(4deg); }
+        }
+        .float-sticker {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+
+        .page-section {
+            animation: fadeIn 0.5s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen relative text-slate-800 pb-16">
+
+    <canvas id="heartCanvas"></canvas>
+
+    <!-- Navigation Header with Audio Controls -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-md border-b border-pink-200 px-4 py-3 shadow-sm">
+        <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-2">
+            <!-- App Logo -->
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl animate-bounce">💖</span>
+                <span class="font-cute text-xl sm:text-2xl font-bold bg-gradient-to-r from-pink-500 via-pink-400 to-rose-500 bg-clip-text text-transparent">
+                    For Lorna✨
+                </span>
+            </div>
+
+            <!-- Page Tracker Tabs -->
+            <div id="pageNavTabs" class="hidden md:flex items-center space-x-1 bg-pink-50 p-1 rounded-full border border-pink-200">
+                <button onclick="goToPage(1)" class="nav-tab-btn px-3 py-1 text-xs font-semibold rounded-full transition-all text-pink-600 bg-white shadow-sm" data-page="1">1. Welcome</button>
+                <button onclick="goToPage(2)" class="nav-tab-btn px-3 py-1 text-xs font-semibold rounded-full transition-all text-slate-600 hover:text-pink-600" data-page="2">2. Letter</button>
+                <button onclick="goToPage(3)" class="nav-tab-btn px-3 py-1 text-xs font-semibold rounded-full transition-all text-slate-600 hover:text-pink-600" data-page="3">3. Gallery</button>
+                <button onclick="goToPage(4)" class="nav-tab-btn px-3 py-1 text-xs font-semibold rounded-full transition-all text-slate-600 hover:text-pink-600" data-page="4">4. Song</button>
+                <button onclick="goToPage(5)" class="nav-tab-btn px-3 py-1 text-xs font-semibold rounded-full transition-all text-slate-600 hover:text-pink-600" data-page="5">5. Spotlight</button>
+                <button onclick="goToPage(6)" class="nav-tab-btn px-3 py-1 text-xs font-semibold rounded-full transition-all text-slate-600 hover:text-pink-600" data-page="6">6. Sign-off</button>
+            </div>
+
+            <!-- Music Controls Bar -->
+            <div class="flex items-center space-x-3 bg-pink-100/90 px-3 py-1.5 rounded-full border border-pink-300 shadow-sm">
+                <button id="bgAudioPlayBtn" onclick="toggleAudio()" class="w-8 h-8 rounded-full bg-pink-500 text-white flex items-center justify-center hover:bg-pink-600 transition-transform active:scale-95 shadow">
+                    <i id="bgAudioIcon" class="fas fa-play text-xs ml-0.5"></i>
+                </button>
+
+                <div id="eqBars" class="hidden sm:flex items-end space-x-1 h-5 opacity-50">
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                    <div class="eq-bar"></div>
+                </div>
+
+                <div class="hidden sm:flex items-center space-x-1.5">
+                    <i class="fas fa-volume-down text-xs text-pink-600"></i>
+                    <input id="volumeControl" type="range" min="0" max="1" step="0.05" value="0.7" onchange="changeVolume(this.value)" class="w-16 h-1 bg-pink-300 rounded-lg appearance-none cursor-pointer accent-pink-500">
+                </div>
+
+                <button onclick="toggleAudioModal()" class="text-xs bg-white text-pink-600 px-2.5 py-1 rounded-full font-medium hover:bg-pink-50 border border-pink-200 transition" title="Change Background Music">
+                    <i class="fas fa-music mr-1"></i>Track
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hidden HTML5 Audio Element for Background Music -->
+    <audio id="bgAudio" loop></audio>
+
+    <main class="relative z-10 max-w-4xl mx-auto px-4 pt-24 pb-12">
+
+        <!-- ================= PAGE 1: WELCOME ================= -->
+        <section id="page1" class="page-section space-y-8 text-center">
+            <div class="pink-glass rounded-3xl p-6 sm:p-10 relative overflow-hidden">
+                <span class="absolute top-4 left-4 text-3xl float-sticker">🎀</span>
+                <span class="absolute top-4 right-4 text-3xl float-sticker" style="animation-delay: 1s;">✨</span>
+                <span class="absolute bottom-4 left-4 text-3xl float-sticker" style="animation-delay: 2s;">🌸</span>
+                <span class="absolute bottom-4 right-4 text-3xl float-sticker" style="animation-delay: 1.5s;">👑</span>
+
+                <div class="inline-block px-4 py-1.5 rounded-full bg-pink-200 text-pink-800 text-xs sm:text-sm font-bold tracking-wider uppercase mb-4 shadow-sm">
+                    ✨ The Party Is October 5th✨
+                </div>
+
+                <h1 class="font-cute text-3xl sm:text-5xl md:text-6xl font-extrabold text-pink-600 tracking-tight leading-tight mb-6 drop-shadow-sm">
+                    HAPPY BIRTHDAY LORNA <br>
+                    <span class="text-pink-500 text-2xl sm:text-4xl md:text-5xl block mt-2">I LOVE YOU SM!💕✨</span>
+                </h1>
+
+                <!-- Page 1 Image Container / Dropzone (Preconfigured with Default Image & editable in code below) -->
+                <div class="max-w-md mx-auto my-8 relative">
+                    <div class="polaroid-frame rounded-2xl rotate-1">
+                        <div class="washi-tape"></div>
+                        <div class="relative w-full h-72 sm:h-80 bg-pink-100 rounded-xl overflow-hidden flex items-center justify-center group border-2 border-dashed border-pink-300">
+                            <!-- DEFAULT IMAGE 1: You can replace this src url or upload directly -->
+                            <img id="p1Img" src="lorna5.jpeg" alt="💖" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            
+                            <label for="p1Input" class="absolute inset-0 bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-4 text-center">
+                                <i class="fas fa-camera text-3xl mb-2"></i>
+                                <span class="text-xs font-semibold"></span>
+                            </label>
+                            <input type="file" id="p1Input" accept="image/*" onchange="handleImageUpload(event, 'p1Img')" class="hidden">
+                        </div>
+                        <p class="font-handwritten text-2xl text-pink-600 mt-3 font-bold">💖</p>
+                    </div>
+                </div>
+
+                <p class="text-pink-700 text-base sm:text-lg max-w-lg mx-auto font-medium leading-relaxed">
+                    Welcome to your birthday website!💌
+                </p>
+
+                <div class="pt-6">
+                    <button onclick="goToPage(2)" class="px-8 py-4 rounded-full bg-gradient-to-r from-pink-400 via-pink-500 to-rose-400 text-white font-cute font-bold text-lg shadow-lg shadow-pink-300/50 hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center space-x-2 mx-auto">
+                        <span>💖</span>
+                        <i class="fas fa-arrow-right text-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 2: THE LETTER ================= -->
+        <section id="page2" class="page-section hidden space-y-6">
+            <div class="pink-glass rounded-3xl p-6 sm:p-10 relative">
+                <div class="flex items-center justify-between border-b border-pink-200 pb-4 mb-6">
+                    <h2 class="font-cute text-2xl sm:text-3xl font-bold text-pink-600 flex items-center">
+                        <i class="fas fa-envelope-open-text mr-3 text-pink-400"></i>Lorna 💌
+                    </h2>
+                    <span class="text-xs bg-pink-100 text-pink-600 px-3 py-1 rounded-full font-semibold">Page 2 / 6</span>
+                </div>
+
+                <div class="bg-amber-50/90 rounded-2xl p-6 sm:p-8 border-2 border-dashed border-pink-300 shadow-inner relative overflow-hidden font-handwritten text-xl sm:text-2xl text-slate-800 leading-relaxed space-y-4">
+                    <div class="absolute top-2 right-3 text-2xl text-pink-300 opacity-60">🌸</div>
+                    
+                    <p class="font-bold text-pink-600 text-2xl sm:text-3xl">Lorna,</p>
+                    
+                    <!-- Preconfigured Letter Content: You can edit this directly in code or live on the page -->
+                    <div id="letterContent" contenteditable="true" class="focus:outline-none focus:bg-white/50 p-2 rounded-lg transition-colors border border-transparent hover:border-pink-200 min-h-[220px]">
+                       Happy Birthday❤️<br><br>
+                        Highschool us never saw this coming...ati mimi na wewe being this close😂😭...But I am so grateful for having you in my life.
+                        Mimi mambo ya kuandikiana paragraph sijuangi poa but bare w mee😭..Thankyou for always being there...You deserve all the good things in life.
+                        I pray you achieve all your dreams...I want to always see you winnn😝! And no matter what remember YOU'RE THE PRIZE🙂‍↕️!!
+                        Thankyou for all the laughs, hosting me, kuninunulia vitu..and all other things. Wee hii si appreciation letter but Yes😭😂 "YOU ARE APPRECIATED❤️"
+                        in Tupac's voice😏😂
+                        I wish you a very pretty dayyy and better days aheaddd. This website is just a small gesture of how much you mean to me.
+                        I LOVE YOU AND HAPPY BIRTHDAY MUGUCUUU🥹🫶🏾
+                    </div>
+
+                    <div class="text-right text-pink-500 font-bold pt-4 border-t border-pink-200/60">
+                        Ann❤️
+                    </div>
+                </div>
+
+                <div class="text-center text-xs text-pink-500 mt-2">
+                    💡 <span class="font-medium">You can click and type directly inside the letter to personalize your message!</span>
+                </div>
+
+                <div class="flex justify-between items-center pt-6">
+                    <button onclick="goToPage(1)" class="px-5 py-2.5 rounded-full bg-white text-pink-600 font-bold border border-pink-300 hover:bg-pink-50 transition-all flex items-center space-x-2">
+                        <i class="fas fa-arrow-left text-xs"></i>
+                        <span>Back</span>
+                    </button>
+                    <button onclick="goToPage(3)" class="px-6 py-3 rounded-full bg-pink-500 text-white font-cute font-bold shadow-md hover:bg-pink-600 hover:scale-105 transition-all flex items-center space-x-2">
+                        <span>Gallery</span>
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 3: PHOTO GALLERY (4 PICS) ================= -->
+        <section id="page3" class="page-section hidden space-y-6">
+            <div class="pink-glass rounded-3xl p-6 sm:p-10">
+                <div class="flex items-center justify-between border-b border-pink-200 pb-4 mb-6">
+                    <div>
+                        <h2 class="font-cute text-2xl sm:text-3xl font-bold text-pink-600">
+                            Lorna💖
+                        </h2>
+                        <p class="text-xs text-pink-500"></p>
+                    </div>
+                    <span class="text-xs bg-pink-100 text-pink-600 px-3 py-1 rounded-full font-semibold">Page 3 / 6</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
+                    <!-- Photo 1 -->
+                    <div class="polaroid-frame rounded-2xl -rotate-2">
+                        <div class="washi-tape"></div>
+                        <div class="relative w-full h-56 bg-pink-100 rounded-xl overflow-hidden group border border-pink-200">
+                            <!-- DEFAULT GALLERY PIC 1 -->
+                            <img id="gImg1" src="lorna1.jpeg" alt="Memory 1" class="w-full h-full object-cover">
+                            <label for="gInput1" class="absolute inset-0 bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-2 text-center">
+                                <i class="fas fa-upload text-2xl mb-1"></i>
+                                <span class="text-xs font-semibold"></span>
+                            </label>
+                            <input type="file" id="gInput1" accept="image/*" onchange="handleImageUpload(event, 'gImg1')" class="hidden">
+                        </div>
+                        <input type="text" value="🌸" class="w-full mt-3 font-handwritten text-xl text-center text-pink-600 bg-transparent border-none focus:ring-0 font-bold">
+                    </div>
+
+                    <!-- Photo 2 -->
+                    <div class="polaroid-frame rounded-2xl rotate-2">
+                        <div class="washi-tape"></div>
+                        <div class="relative w-full h-56 bg-pink-100 rounded-xl overflow-hidden group border border-pink-200">
+                            <!-- DEFAULT GALLERY PIC 2 -->
+                            <img id="gImg2" src="lorna2.jpeg" alt="Memory 2" class="w-full h-full object-cover">
+                            <label for="gInput2" class="absolute inset-0 bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-2 text-center">
+                                <i class="fas fa-upload text-2xl mb-1"></i>
+                                <span class="text-xs font-semibold"></span>
+                            </label>
+                            <input type="file" id="gInput2" accept="image/*" onchange="handleImageUpload(event, 'gImg2')" class="hidden">
+                        </div>
+                        <input type="text" value="✨" class="w-full mt-3 font-handwritten text-xl text-center text-pink-600 bg-transparent border-none focus:ring-0 font-bold">
+                    </div>
+
+                    <!-- Photo 3 -->
+                    <div class="polaroid-frame rounded-2xl rotate-1">
+                        <div class="washi-tape"></div>
+                        <div class="relative w-full h-56 bg-pink-100 rounded-xl overflow-hidden group border border-pink-200">
+                            <!-- DEFAULT GALLERY PIC 3 -->
+                            <img id="gImg3" src="lorna3.jpeg" alt="Memory 3" class="w-full h-full object-cover">
+                            <label for="gInput3" class="absolute inset-0 bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-2 text-center">
+                                <i class="fas fa-upload text-2xl mb-1"></i>
+                                <span class="text-xs font-semibold"></span>
+                            </label>
+                            <input type="file" id="gInput3" accept="image/*" onchange="handleImageUpload(event, 'gImg3')" class="hidden">
+                        </div>
+                        <input type="text" value="💕" class="w-full mt-3 font-handwritten text-xl text-center text-pink-600 bg-transparent border-none focus:ring-0 font-bold">
+                    </div>
+
+                    <!-- Photo 4 -->
+                    <div class="polaroid-frame rounded-2xl -rotate-1">
+                        <div class="washi-tape"></div>
+                        <div class="relative w-full h-56 bg-pink-100 rounded-xl overflow-hidden group border border-pink-200">
+                            <!-- DEFAULT GALLERY PIC 4 -->
+                            <img id="gImg4" src="lorna4.jpeg" alt="Memory 4" class="w-full h-full object-cover">
+                            <label for="gInput4" class="absolute inset-0 bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-2 text-center">
+                                <i class="fas fa-upload text-2xl mb-1"></i>
+                                <span class="text-xs font-semibold"></span>
+                            </label>
+                            <input type="file" id="gInput4" accept="image/*" onchange="handleImageUpload(event, 'gImg4')" class="hidden">
+                        </div>
+                        <input type="text" value="👑" class="w-full mt-3 font-handwritten text-xl text-center text-pink-600 bg-transparent border-none focus:ring-0 font-bold">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-8">
+                    <button onclick="goToPage(2)" class="px-5 py-2.5 rounded-full bg-white text-pink-600 font-bold border border-pink-300 hover:bg-pink-50 transition-all flex items-center space-x-2">
+                        <i class="fas fa-arrow-left text-xs"><span>Back</span></i>
+                    </button>
+                    <button onclick="goToPage(4)" class="px-6 py-3 rounded-full bg-pink-500 text-white font-cute font-bold shadow-md hover:bg-pink-600 hover:scale-105 transition-all flex items-center space-x-2">
+                        <span>Song Dedication</span>
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 4: SONG DEDICATION & LYRICS ================= -->
+        <section id="page4" class="page-section hidden space-y-6">
+            <div class="pink-glass rounded-3xl p-6 sm:p-10">
+                <div class="flex items-center justify-between border-b border-pink-200 pb-4 mb-6">
+                    <h2 class="font-cute text-2xl sm:text-3xl font-bold text-pink-600 flex items-center">
+                        <i class="fab fa-spotify mr-3 text-emerald-500"></i> Dedicated Song for you🎵
+                    </h2>
+                    <span class="text-xs bg-pink-100 text-pink-600 px-3 py-1 rounded-full font-semibold">Page 4 / 6</span>
+                </div>
+
+                <!-- Spotify Player Box -->
+                <div class="bg-slate-900 text-white rounded-2xl p-4 sm:p-6 shadow-xl border border-pink-300/30 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i class="fab fa-spotify text-emerald-400 text-2xl"></i>
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Spotify Dedication Track</span>
+                        </div>
+                        <button onclick="toggleSpotifyModal()" class="text-xs text-pink-300 hover:text-white bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
+                            <i class="fas fa-link mr-1"></i> Change Spotify Track ID
+                        </button>
+                    </div>
+
+                    <!-- PRECONFIGURED SPOTIFY EMBED (You can change track ID in code or via modal) -->
+                    <div id="spotifyContainer" class="w-full h-20 rounded-xl overflow-hidden bg-slate-800">
+                        <iframe id="spotifyIframe" style="border-radius:12px" src="https://open.spotify.com/track/1652voE1ZeLyehNC2kbHMb?si=c2dec6fbf46c4ab0" width="100%" height="80" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+                    </div>
+                </div>
+
+                <!-- Song Lyrics & Note Card -->
+                <div class="bg-white/90 rounded-2xl p-6 border border-pink-200 shadow-sm space-y-4">
+                    <h3 class="font-cute text-xl font-bold text-pink-600 flex items-center">
+                        <i class="fas fa-quote-left text-pink-300 mr-2"></i> 
+                    </h3>
+
+                    <div>
+                        <label class="block text-xs font-bold text-pink-500 uppercase tracking-wider mb-1">Dedicated Lyrics:</label>
+                        <textarea id="lyricsInput" rows="3" class="w-full p-3 rounded-xl bg-pink-50/50 border border-pink-200 text-pink-800 font-handwritten text-2xl focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none">"THINGS WILL GO BETTER IF YOU JUST HOLD MY HAND.."✨🎶</textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-pink-500 uppercase tracking-wider mb-1">Why I Dedicated This Song:</label>
+                        <textarea id="reasonInput" rows="2" class="w-full p-3 rounded-xl bg-pink-50/50 border border-pink-200 text-slate-700 font-sans text-sm focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none">This song always reminds me of how pretty our frienship is!💕</textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-4">
+                    <button onclick="goToPage(3)" class="px-5 py-2.5 rounded-full bg-white text-pink-600 font-bold border border-pink-300 hover:bg-pink-50 transition-all flex items-center space-x-2">
+                        <i class="fas fa-arrow-left text-xs"></i>
+                        <span>Back</span>
+                    </button>
+                    <button onclick="goToPage(5)" class="px-6 py-3 rounded-full bg-pink-500 text-white font-cute font-bold shadow-md hover:bg-pink-600 hover:scale-105 transition-all flex items-center space-x-2">
+                        <span>Spotlight Photo</span>
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 5: BIG FEATURED PHOTO ================= -->
+        <section id="page5" class="page-section hidden space-y-6">
+            <div class="pink-glass rounded-3xl p-6 sm:p-10 text-center">
+                <div class="flex items-center justify-between border-b border-pink-200 pb-4 mb-6">
+                    <h2 class="font-cute text-2xl sm:text-3xl font-bold text-pink-600">
+                        The Spotlight Photo Frame🌟
+                    </h2>
+                    <span class="text-xs bg-pink-100 text-pink-600 px-3 py-1 rounded-full font-semibold">Page 5 / 6</span>
+                </div>
+
+                <p class="text-sm text-pink-700 font-medium mb-6">
+                    
+                
+
+                <div class="max-w-xl mx-auto relative">
+                    <div class="polaroid-frame rounded-3xl p-4 sm:p-6 bg-white shadow-2xl border-2 border-pink-200">
+                        <div class="washi-tape" style="width: 120px; height: 30px;"></div>
+                        
+                        <span class="absolute -top-3 -left-3 text-3xl z-30">💖</span>
+                        <span class="absolute -top-3 -right-3 text-3xl z-30">👑</span>
+                        <span class="absolute -bottom-3 -left-3 text-3xl z-30">✨</span>
+                        <span class="absolute -bottom-3 -right-3 text-3xl z-30">🌸</span>
+
+                        <div class="relative w-full h-[320px] sm:h-[420px] bg-pink-100 rounded-2xl overflow-hidden group border-2 border-dashed border-pink-300">
+                            <!-- DEFAULT SPOTLIGHT PHOTO -->
+                            <img id="spotlightImg" src="lorna3.jpeg" alt="Spotlight Photo" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                            
+                            <label for="spotlightInput" class="absolute inset-0 bg-black/40 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer p-4 text-center">
+                                <i class="fas fa-camera text-4xl mb-2"></i>
+                                <span class="text-sm font-semibold">U</span>
+                            </label>
+                            <input type="file" id="spotlightInput" accept="image/*" onchange="handleImageUpload(event, 'spotlightImg')" class="hidden">
+                        </div>
+
+                        <div class="pt-4">
+                            <input type="text" value="Main Character Energy!!" class="w-full font-handwritten text-3xl text-center text-pink-600 bg-transparent border-none focus:ring-0 font-bold">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-8">
+                    <button onclick="goToPage(4)" class="px-5 py-2.5 rounded-full bg-white text-pink-600 font-bold border border-pink-300 hover:bg-pink-50 transition-all flex items-center space-x-2">
+                        <i class="fas fa-arrow-left text-xs"></i>
+                        <span>Back</span>
+                    </button>
+                    <button onclick="goToPage(6)" class="px-6 py-3 rounded-full bg-pink-500 text-white font-cute font-bold shadow-md hover:bg-pink-600 hover:scale-105 transition-all flex items-center space-x-2">
+                        <span>Sign-off</span>
+                        <i class="fas fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= PAGE 6: SIGN-OFF ================= -->
+        <section id="page6" class="page-section hidden space-y-6">
+            <div class="pink-glass rounded-3xl p-6 sm:p-10 text-center relative overflow-hidden">
+                <div class="inline-block px-4 py-1.5 rounded-full bg-pink-200 text-pink-800 text-xs sm:text-sm font-bold uppercase tracking-wider mb-4">
+                Hugs & Love
+                </div>
+
+                <h2 class="font-cute text-3xl sm:text-5xl font-bold text-pink-600 mb-4">
+                    Happy Birthday Once Again, Lorna! 💕
+                </h2>
+
+                <p class="text-slate-700 text-base sm:text-lg max-w-lg mx-auto leading-relaxed mb-8">
+                    I hope this website brought a giant smile to your face today! You deserve all the joy, love in the world.
+                </p>
+
+                <div class="py-4">
+                    <button onclick="fireLoveConfetti()" class="px-8 py-4 rounded-full bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500 text-white font-cute font-bold text-xl shadow-xl shadow-pink-300 hover:scale-110 active:scale-95 transition-all border-2 border-white animate-pulse">
+                        💖Pop Birthday Love Confetti! 
+                    </button>
+                </div>
+
+                <div class="max-w-md mx-auto mt-8 bg-white/90 rounded-2xl p-6 border-2 border-pink-200 shadow-md">
+                    <p class="font-handwritten text-2xl text-pink-600 font-bold mb-2"></p>
+                    <div id="signoffText" contenteditable="true" class="font-handwritten text-2xl text-slate-700 focus:outline-none focus:bg-pink-50/50 rounded p-2">
+                        "Always here cheering for you! Love you Lorna!" 💖✨
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-8">
+                    <button onclick="goToPage(5)" class="px-5 py-2.5 rounded-full bg-white text-pink-600 font-bold border border-pink-300 hover:bg-pink-50 transition-all flex items-center space-x-2">
+                        <i class="fas fa-arrow-left text-xs"></i>
+                        <span>Back</span>
+                    </button>
+                    <button onclick="goToPage(1)" class="px-6 py-2.5 rounded-full bg-pink-100 text-pink-600 font-bold hover:bg-pink-200 transition-all">
+                        🔄 Restart Story
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Audio Upload Modal -->
+    <div id="audioModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-2 border-pink-300 space-y-4">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-2">
+                <h3 class="font-cute text-xl font-bold text-pink-600">🎵 Custom Background Track</h3>
+                <button onclick="toggleAudioModal()" class="text-slate-400 hover:text-pink-600 text-lg"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-pink-500 uppercase mb-1">Upload MP3 Audio File</label>
+                <input type="file" id="customAudioFile" accept="audio/*" onchange="loadCustomAudioFile(event)" class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-pink-100 file:text-pink-700 hover:file:bg-pink-200">
+            </div>
+
+            <div class="text-center text-xs text-slate-400 font-bold my-1">- OR -</div>
+
+            <div>
+                <label class="block text-xs font-bold text-pink-500 uppercase mb-1">Paste Direct Audio Link (MP3/OGG)</label>
+                <input type="url" id="customAudioUrl" placeholder="pov.mp3" class="w-full p-2.5 text-xs rounded-xl border border-pink-200 focus:ring-2 focus:ring-pink-400 focus:outline-none">
+            </div>
+
+            <button onclick="loadCustomAudioUrl()" class="w-full py-2.5 rounded-xl bg-pink-500 text-white font-bold text-xs shadow hover:bg-pink-600 transition">
+                Apply Custom Song 🎶
+            </button>
+        </div>
+    </div>
+
+    <!-- Spotify Track Modal -->
+    <div id="spotifyModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border-2 border-pink-300 space-y-4">
+            <div class="flex justify-between items-center border-b border-pink-100 pb-2">
+                <h3 class="font-cute text-xl font-bold text-pink-600"><i class="fab fa-spotify text-emerald-500 mr-2"></i>Set Spotify Track ID</h3>
+                <button onclick="toggleSpotifyModal()" class="text-slate-400 hover:text-pink-600 text-lg"><i class="fas fa-times"></i></button>
+            </div>
+
+            <p class="text-xs text-slate-600">
+                Paste a Spotify Track ID or full Spotify Track Link below:
+            </p>
+
+            <input type="text" id="spotifyTrackInput" placeholder="https://open.spotify.com/track/1652voE1ZeLyehNC2kbHMb?si=518051de6617427f" class="w-full p-2.5 text-xs rounded-xl border border-pink-200 focus:ring-2 focus:ring-pink-400 focus:outline-none">
+
+            <button onclick="updateSpotifyTrack()" class="w-full py-2.5 rounded-xl bg-emerald-500 text-white font-bold text-xs shadow hover:bg-emerald-600 transition">
+                Update Spotify Player 🎧
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let isAudioPlaying = false;
+        const bgAudio = document.getElementById('bgAudio');
+
+        // =========================================================================
+        // DEFAULT BACKGROUND MUSIC: You can replace this link with your own MP3 URL!
+        // =========================================================================
+        bgAudio.src = "pov.mp3";
+        bgAudio.volume = 0.7;
+
+        function goToPage(pageNumber) {
+            if (pageNumber < 1 || pageNumber > 6) return;
+
+            for (let i = 1; i <= 6; i++) {
+                const sec = document.getElementById(`page${i}`);
+                if (sec) sec.classList.add('hidden');
+            }
+
+            const targetSec = document.getElementById(`page${pageNumber}`);
+            if (targetSec) targetSec.classList.remove('hidden');
+
+            currentPage = pageNumber;
+            updateNavTabs();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (pageNumber === 6) {
+                fireLoveConfetti();
+            }
+        }
+
+        function updateNavTabs() {
+            const tabs = document.querySelectorAll('.nav-tab-btn');
+            tabs.forEach(tab => {
+                const p = parseInt(tab.getAttribute('data-page'));
+                if (p === currentPage) {
+                    tab.classList.add('text-pink-600', 'bg-white', 'shadow-sm');
+                    tab.classList.remove('text-slate-600');
+                } else {
+                    tab.classList.remove('text-pink-600', 'bg-white', 'shadow-sm');
+                    tab.classList.add('text-slate-600');
+                }
+            });
+        }
+
+        function toggleAudio() {
+            if (isAudioPlaying) {
+                bgAudio.pause();
+                isAudioPlaying = false;
+                document.getElementById('bgAudioIcon').className = "fas fa-play text-xs ml-0.5";
+                document.getElementById('eqBars').classList.add('opacity-50');
+            } else {
+                bgAudio.play().then(() => {
+                    isAudioPlaying = true;
+                    document.getElementById('bgAudioIcon').className = "fas fa-pause text-xs";
+                    document.getElementById('eqBars').classList.remove('opacity-50');
+                }).catch(err => {
+                    console.log("Audio play blocked by browser policy.", err);
+                });
+            }
+        }
+
+        function changeVolume(val) {
+            bgAudio.volume = parseFloat(val);
+        }
+
+        function toggleAudioModal() {
+            document.getElementById('audioModal').classList.toggle('hidden');
+        }
+
+        function loadCustomAudioFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                bgAudio.src = URL.createObjectURL(file);
+                bgAudio.play();
+                isAudioPlaying = true;
+                document.getElementById('bgAudioIcon').className = "fas fa-pause text-xs";
+                toggleAudioModal();
+            }
+        }
+
+        function loadCustomAudioUrl() {
+            const url = document.getElementById('customAudioUrl').value.trim();
+            if (url) {
+                bgAudio.src = url;
+                bgAudio.play();
+                isAudioPlaying = true;
+                document.getElementById('bgAudioIcon').className = "fas fa-pause text-xs";
+                toggleAudioModal();
+            }
+        }
+
+        function toggleSpotifyModal() {
+            document.getElementById('spotifyModal').classList.toggle('hidden');
+        }
+
+        function updateSpotifyTrack() {
+            let val = document.getElementById('spotifyTrackInput').value.trim();
+            if (!val) return;
+
+            if (val.includes('spotify.com/track/')) {
+                val = val.split('track/')[1].split('?')[0];
+            }
+
+            document.getElementById('spotifyIframe').src = `https://open.spotify.com/embed/track/${val}?utm_source=generator&theme=0`;
+            toggleSpotifyModal();
+        }
+
+        function handleImageUpload(event, targetImgId) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(targetImgId).src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function fireLoveConfetti() {
+            confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#ffb6c1', '#ff69b4', '#ff1493', '#ffffff']
+            });
+        }
+
+        // Falling Hearts Canvas Animation
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+        let hearts = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Heart {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -20 - Math.random() * 50;
+                this.size = Math.random() * 14 + 8;
+                this.speedY = Math.random() * 1.5 + 0.8;
+                this.speedX = Math.sin(Math.random() * Math.PI) * 0.8;
+                this.opacity = Math.random() * 0.6 + 0.3;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.02;
+                
+                const colors = ['#ffb6c1', '#ff69b4', '#ff1493', '#ffd1dc', '#f4c2c2'];
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            update() {
+                this.y += this.speedY;
+                this.x += Math.sin(this.y * 0.01) * 0.5;
+                this.rotation += this.rotationSpeed;
+
+                if (this.y > canvas.height + 20) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                ctx.globalAlpha = this.opacity;
+                ctx.fillStyle = this.color;
+
+                const topCurveHeight = this.size * 0.3;
+                ctx.beginPath();
+                ctx.moveTo(0, topCurveHeight);
+                ctx.bezierCurveTo(0, 0, -this.size / 2, 0, -this.size / 2, topCurveHeight);
+                ctx.bezierCurveTo(-this.size / 2, (this.size + topCurveHeight) / 2, 0, (this.size + topCurveHeight) * 0.75, 0, this.size);
+                ctx.bezierCurveTo(0, (this.size + topCurveHeight) * 0.75, this.size / 2, (this.size + topCurveHeight) / 2, this.size / 2, topCurveHeight);
+                ctx.bezierCurveTo(this.size / 2, 0, 0, 0, 0, topCurveHeight);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < 35; i++) {
+            const h = new Heart();
+            h.y = Math.random() * canvas.height;
+            hearts.push(h);
+        }
+
+        function animateHearts() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hearts.forEach(h => {
+                h.update();
+                h.draw();
+            });
+            requestAnimationFrame(animateHearts);
+        }
+
+        window.onload = function() {
+            animateHearts();
+        };
+    </script>
+</body>
+</html>
